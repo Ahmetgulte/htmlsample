@@ -1,324 +1,490 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #ffffff;
-        }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+          sans-serif;
+        background-color: #ffffff;
+        touch-action: manipulation;
+      }
 
-        .container {
-            margin-top: 20px;
-            margin-bottom: 20px;
-            margin-left: 15px;
-            margin-right: 15px;
-        }
+      .container {
+        margin-top: 20px;
+        margin-bottom: 20px;
+        margin-left: 15px;
+        margin-right: 15px;
+      }
 
+      .image-slider-container {
+        position: relative;
+        width: 100%;
+        overflow: hidden;
+        margin-bottom: 10px;
+      }
+
+      .image-slider {
+        display: flex;
+        transition: transform 0.3s ease-in-out;
+        height: 100%;
+        width: 100%;
+      }
+
+      .slide {
+        flex: 0 0 100%;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .slide img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+        transition: transform 0.3s ease-out;
+        transform-origin: center;
+      }
+
+      .page-controls {
+        display: flex;
+        gap: 10px;
+        background-color: rgba(0, 0, 0, 0.3);
+        justify-content: center;
+        padding: 6px 10px;
+        border-radius: 20px;
+        width: fit-content;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .page-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 1);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: none;
+        box-shadow: none;
+      }
+
+      .page-dot.active {
+        background-color: #000000;
+      }
+
+      @media (max-width: 768px) {
         .image-slider-container {
-            position: relative;
-            width: 100%;
-            overflow: hidden;
-            margin-bottom: 10px;
+          height: 360px;
         }
+      }
 
-        .image-slider {
-            display: flex;
-            transition: transform 0.3s ease-in-out;
-            height: 100%;
-            width: 100%;
+      @media (max-width: 480px) {
+        .image-slider-container {
+          height: 250px;
         }
-
-        .slide {
-            flex: 0 0 100%;
-            height: 100%;
-            position: relative;
-        }
-
-        .slide img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            display: block;
-            transform-origin: center center; /* Center the zooming action */
-            transition: transform 0.3s ease-in-out; /* Smooth zoom transition */
-        }
-
-        .page-controls {
-            display: flex;
-            gap: 10px;
-            background-color: rgba(0, 0, 0, 0.3);
-            justify-content: center;
-            padding: 6px 10px;
-            border-radius: 20px;
-            width: fit-content;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .page-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background-color: rgba(255, 255, 255, 1);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            border: none;
-            box-shadow: none;
-        }
-
-        .page-dot.active {
-            background-color: #000000;
-        }
-
-        @media (max-width: 768px) {
-            .image-slider-container {
-                height: 360px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .image-slider-container {
-                height: 250px;
-            }
-        }
+      }
     </style>
-</head>
-
-<body>
+  </head>
+  <body>
     <div class="container">
-        <div class="image-slider-container">
-            <div class="image-slider" id="imageSlider">
-                <!-- Add slides here -->
-                <div class="slide">
-                    <img src="https://picsum.photos/800/600?random=1" alt="Slide1 Image">
-                </div>
-                <div class="slide">
-                    <img src="https://picsum.photos/800/600?random=1" alt="Slide2 Image">
-                </div>
-            </div>
+      <div class="image-slider-container">
+        <div class="image-slider" id="imageSlider">
+          
+          <div class="slide">
+            <img src="https://i.ibb.co/Kc2psngV/walkie-talkie-2.jpg" id="image0" />
+          </div>
+          
+          <div class="slide">
+            <img src="https://i.ibb.co/RpC5FJD1/walkie-talkie-1.jpg" id="image1" />
+          </div>
+          
         </div>
+      </div>
 
-        <div class="page-controls" id="pageControls">
-            <!-- Page control dots will be added dynamically -->
-        </div>
+      <div class="page-controls" id="pageControls">
+        
+        <div class="page-dot active"></div>
+        
+        <div class="page-dot"></div>
+        
+      </div>
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
+      document.addEventListener("DOMContentLoaded", () => {
+        
+        const imageSlider = document.getElementById("imageSlider");
+        const pageControls = document.getElementById("pageControls");
+        const imageSliderContainer = document.querySelector(".image-slider-container");
+        const slides = document.querySelectorAll(".slide");
+        const images = document.querySelectorAll(".slide img");
 
-            const imageSlider = document.getElementById("imageSlider");
-            const pageControls = document.getElementById("pageControls");
-            const imageSliderContainer = document.querySelector(".image-slider-container");
+        imageSliderContainer.style.height = "500px";
 
-            let currentIndex = 0;
-            let startX = 0;
-            let currentX = 0;
-            let isSwiping = false;
-            let isZooming = false;
-            let startTouchDistance = 0;
-            let touchStartTime = 0;
-            let touchEndTime = 0;
-            let touchStartY = 0;
-            let hasMoved = false;
-            let scale = 1; // For zooming
+        // Variables for swipe functionality
+        let currentIndex = 0;
+        let startX = 0;
+        let currentX = 0;
+        let isSwiping = false;
+        let touchStartTime = 0;
+        let touchEndTime = 0;
+        let touchStartY = 0;
+        let hasMoved = false;
+        
+        // Variables for zoom functionality
+        let isZooming = false;
+        let startTouchDistance = 0;
+        let currentScale = 1;
+        let lastScale = 1;
+        let startCenterX = 0;
+        let startCenterY = 0;
+        let lastPosX = 0;
+        let lastPosY = 0;
+        let posX = 0;
+        let posY = 0;
+        let maxScale = 3;
+        let minScale = 1;
+        let zoomStarted = false;
 
-            const slides = document.querySelectorAll(".slide");
-            const totalSlides = slides.length;
+        // Total number of slides
+        const totalSlides = slides.length;
 
-            // Initialize page controls (dots)
-            for (let i = 0; i < totalSlides; i++) {
-                const dot = document.createElement("button");
-                dot.classList.add("page-dot");
-                pageControls.appendChild(dot);
+        // Function to update slider position
+        function updateSlider() {
+          // Only animate transitions when not zooming
+          if (!isZooming) {
+            imageSlider.style.transition = "transform 0.3s ease-in-out";
+            imageSlider.style.transform = `translateX(-${currentIndex * 100}%)`;
+          }
+
+          const dots = pageControls.querySelectorAll(".page-dot");
+          dots.forEach((dot, index) => {
+            dot.classList.toggle("active", index === currentIndex);
+          });
+        }
+
+        // Function to get the center point between two touches
+        function getMidpoint(touch1, touch2) {
+          return {
+            x: (touch1.clientX + touch2.clientX) / 2,
+            y: (touch1.clientY + touch2.clientY) / 2
+          };
+        }
+
+        // Reset zoom for current image
+        function resetZoom() {
+          const currentImage = images[currentIndex];
+          currentScale = 1;
+          lastScale = 1;
+          posX = 0;
+          posY = 0;
+          lastPosX = 0;
+          lastPosY = 0;
+          
+          currentImage.style.transition = "transform 0.3s ease-out";
+          currentImage.style.transform = `translate(0px, 0px) scale(1)`;
+          
+          // Re-enable swiping between images
+          isSwiping = false;
+          isZooming = false;
+        }
+
+        // Function to handle image transition
+        function goToSlide(index) {
+          // Reset zoom on previous image
+          resetZoom();
+          
+          // Update current index
+          currentIndex = index;
+          updateSlider();
+        }
+
+        // Function to go to next slide
+        function nextSlide() {
+          goToSlide((currentIndex + 1) % totalSlides);
+        }
+
+        // Function to go to previous slide
+        function prevSlide() {
+          goToSlide((currentIndex - 1 + totalSlides) % totalSlides);
+        }
+
+        // Check if navigation is possible in the given direction
+        function canNavigate(direction) {
+          // If zoomed in, don't allow navigation
+          if (currentScale > 1) {
+            return false;
+          }
+          
+          // Check boundaries
+          if (direction > 0 && currentIndex >= totalSlides - 1) {
+            return false; 
+          }
+          if (direction < 0 && currentIndex <= 0) {
+            return false; 
+          }
+          return true;
+        }
+
+        // Handle touch start
+        function handleTouchStart(e) {
+          const touches = e.touches;
+          
+          hasMoved = false;
+          touchStartTime = new Date().getTime();
+
+          // Handle pinch gesture
+          if (touches && touches.length === 2) {
+            isZooming = true;
+            
+            // Disable slider transition during zoom
+            imageSlider.style.transition = "none";
+            
+            // Calculate distance between two fingers
+            const touch1 = touches[0];
+            const touch2 = touches[1];
+            startTouchDistance = Math.hypot(
+              touch2.clientX - touch1.clientX,
+              touch2.clientY - touch1.clientY
+            );
+            
+            // Get midpoint between touches
+            const midpoint = getMidpoint(touch1, touch2);
+            startCenterX = midpoint.x;
+            startCenterY = midpoint.y;
+            
+            // Store last scale
+            lastScale = currentScale;
+            
+            // Mark that we've started zooming
+            zoomStarted = true;
+            
+            // Prevent default to avoid page scrolling
+            if (e.cancelable) {
+              e.preventDefault();
             }
+            return;
+          }
 
-            // Function to update the slider
-            function updateSlider() {
-                imageSlider.style.transform = `translateX(-${currentIndex * 100}%)`;
+          // Handle single touch (swipe)
+          if (!isZooming) {
+            startX = touches ? touches[0].clientX : e.clientX;
+            touchStartY = touches ? touches[0].clientY : e.clientY;
+            isSwiping = true;
+          }
+          
+          // Prevent default for touch events
+          if (e.cancelable) {
+            e.preventDefault();
+          }
+        }
 
-                const dots = pageControls.querySelectorAll(".page-dot");
-                dots.forEach((dot, index) => {
-                    dot.classList.toggle("active", index === currentIndex);
-                });
+        // Handle touch move
+        function handleTouchMove(e) {
+          const touches = e.touches;
+          
+          // Handle pinch/zoom with two fingers
+          if (touches && touches.length === 2 && zoomStarted) {
+            const touch1 = touches[0];
+            const touch2 = touches[1];
+            const currentTouchDistance = Math.hypot(
+              touch2.clientX - touch1.clientX,
+              touch2.clientY - touch1.clientY
+            );
+            
+            // Calculate scale factor
+            const scaleChange = currentTouchDistance / startTouchDistance;
+            currentScale = Math.min(Math.max(lastScale * scaleChange, minScale), maxScale);
+            
+            // Calculate new center point
+            const currentMidpoint = getMidpoint(touch1, touch2);
+            
+            // Calculate position changes (for panning while zoomed)
+            if (currentScale > 1) {
+              // Only allow panning when zoomed in
+              const deltaX = currentMidpoint.x - startCenterX;
+              const deltaY = currentMidpoint.y - startCenterY;
+              
+              // Adjust position based on scale
+              posX = lastPosX + deltaX / currentScale;
+              posY = lastPosY + deltaY / currentScale;
             }
-
-            // Function to detect pinch-to-zoom
-            function detectPinchGesture(e) {
-                if (e.touches && e.touches.length === 2) {
-
-                    const touch1 = e.touches[0];
-                    const touch2 = e.touches[1];
-                    const distance = Math.hypot(
-                        touch2.clientX - touch1.clientX,
-                        touch2.clientY - touch1.clientY
-                    );
-
-                    if (startTouchDistance === 0) {
-                        startTouchDistance = distance;
-                        return false;
-                    }
-
-                    const zoomThreshold = 10;
-                    if (Math.abs(distance - startTouchDistance) > zoomThreshold) {
-                        isZooming = true;
-                        const zoomFactor = (distance / startTouchDistance);
-                        scale *= zoomFactor;
-                        scale = Math.max(1, Math.min(scale, 3)); // Limiting zoom scale (min: 1, max: 3)
-                        const currentImage = slides[currentIndex].querySelector("img");
-                        currentImage.style.transform = `scale(${scale})`;
-                        startTouchDistance = distance; // Update the start distance for the next iteration
-                        return true;
-                    }
-                } else {
-                    startTouchDistance = 0;
-                }
-
-                return false;
+            
+            // Apply transform to current image
+            const currentImage = images[currentIndex];
+            currentImage.style.transform = `translate(${posX}px, ${posY}px) scale(${currentScale})`;
+            
+            // Prevent default to avoid page scrolling
+            if (e.cancelable) {
+              e.preventDefault();
             }
+            return;
+          }
+          
+          // Handle single touch movement (swipe)
+          if (isSwiping && !isZooming && touches) {
+            currentX = touches[0].clientX;
+            const currentY = touches[0].clientY;
+            
+            // Check if user has moved enough to consider it a swipe
+            const moveX = Math.abs(currentX - startX);
+            const moveY = Math.abs(currentY - touchStartY);
+            
+            if (moveX > 10 || moveY > 10) {
+              hasMoved = true;
+            }
+            
+            // If scale is 1 (not zoomed) and user is swiping horizontally
+            if (currentScale === 1 && hasMoved && moveX > moveY) {
+              const diff = currentX - startX;
+              const slideWidth = imageSlider.clientWidth;
+              
+              // Calculate translation percentage
+              const translateX = -currentIndex * 100 + (diff / slideWidth) * 100;
+              
+              // Only allow swiping if more than one slide
+              if (totalSlides > 1) {
+                imageSlider.style.transform = `translateX(${translateX}%)`;
+              }
+              
+              // Prevent default to avoid page scrolling
+              if (e.cancelable) {
+                e.preventDefault();
+              }
+            }
+          }
+        }
 
-            // Functions to handle slide navigation
-            function nextSlide() {
-                currentIndex = (currentIndex + 1) % totalSlides;
+        // Handle touch end
+        function handleTouchEnd(e) {
+          touchEndTime = new Date().getTime();
+          const touchDuration = touchEndTime - touchStartTime;
+          
+          // Handle end of zoom gesture
+          if (zoomStarted) {
+            zoomStarted = false;
+            
+            // Store the last position for next gesture
+            lastPosX = posX;
+            lastPosY = posY;
+            lastScale = currentScale;
+            
+            // If scale is at or below minimum, reset completely
+            if (currentScale <= minScale) {
+              resetZoom();
+            }
+            
+            // If no more touches, end zooming mode
+            if (!e.touches || e.touches.length === 0) {
+              isZooming = false;
+            }
+            return;
+          }
+          
+          // Handle end of swipe
+          if (isSwiping && !isZooming) {
+            isSwiping = false;
+            
+            // Quick tap (not a swipe)
+            if (touchDuration < 200 && !hasMoved) {
+              return;
+            }
+            
+            // Handle swipe gesture
+            if (hasMoved && currentScale === 1) {
+              const diff = currentX - startX;
+              const threshold = imageSlider.clientWidth * 0.15;
+              
+              // Swipe left
+              if (diff < -threshold && canNavigate(1)) {
+                nextSlide();
+              } 
+              // Swipe right
+              else if (diff > threshold && canNavigate(-1)) {
+                prevSlide();
+              } 
+              // Not enough movement, return to current slide
+              else {
                 updateSlider();
+              }
             }
+          }
+        }
 
-            function prevSlide() {
-                currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
-                updateSlider();
+        // Double tap to zoom
+        function handleDoubleTap(e) {
+          if (isZooming) return;
+          
+          const now = new Date().getTime();
+          const timeSince = now - touchEndTime;
+          
+          // Check if double tap (two taps within 300ms)
+          if (timeSince < 300) {
+            const currentImage = images[currentIndex];
+            
+            // Toggle between zoom levels
+            if (currentScale === 1) {
+              currentScale = 2;
+              
+              // Get tap position to zoom towards that point
+              const touch = e.touches ? e.touches[0] : e;
+              const rect = currentImage.getBoundingClientRect();
+              const offsetX = touch.clientX - rect.left;
+              const offsetY = touch.clientY - rect.top;
+              
+              // Calculate position to center the zoom on tap point
+              posX = (rect.width / 2 - offsetX) / 2;
+              posY = (rect.height / 2 - offsetY) / 2;
+              
+              currentImage.style.transition = "transform 0.3s ease-out";
+              currentImage.style.transform = `translate(${posX}px, ${posY}px) scale(${currentScale})`;
+              
+              lastScale = currentScale;
+              lastPosX = posX;
+              lastPosY = posY;
+              isZooming = true;
+            } else {
+              resetZoom();
             }
-
-            function canNavigate(direction) {
-                if (direction > 0 && currentIndex >= totalSlides - 1) {
-                    return false;
-                }
-                if (direction < 0 && currentIndex <= 0) {
-                    return false;
-                }
-                return true;
+            
+            // Prevent default behavior
+            if (e.cancelable) {
+              e.preventDefault();
             }
+          }
+          
+          // Update timestamp for next potential double tap
+          touchEndTime = now;
+        }
 
-            // Handle touch start event
-            function handleTouchStart(e) {
-                isZooming = false;
-                startTouchDistance = 0;
-                hasMoved = false;
-                touchStartTime = new Date().getTime();
+        // Add event listeners
+        imageSlider.addEventListener("touchstart", handleTouchStart, { passive: false });
+        imageSlider.addEventListener("touchmove", handleTouchMove, { passive: false });
+        imageSlider.addEventListener("touchend", handleTouchEnd);
+        imageSlider.addEventListener("touchstart", handleDoubleTap, { passive: false });
 
-                if (e.touches && e.touches.length === 2) {
-                    const touch1 = e.touches[0];
-                    const touch2 = e.touches[1];
-                    startTouchDistance = Math.hypot(
-                        touch2.clientX - touch1.clientX,
-                        touch2.clientY - touch1.clientY
-                    );
-                    return;
-                }
-
-                startX = e.touches ? e.touches[0].clientX : e.clientX;
-                touchStartY = e.touches ? e.touches[0].clientY : e.clientY;
-                isSwiping = true;
-
-                if (e.cancelable) {
-                    e.preventDefault();
-                }
-            }
-
-            // Handle touch move event
-            function handleTouchMove(e) {
-                if (e.touches && e.touches.length === 2) {
-                    detectPinchGesture(e);
-                    return;
-                }
-
-                if (isZooming || !isSwiping) return;
-
-                currentX = e.touches ? e.touches[0].clientX : e.clientX;
-                const currentY = e.touches ? e.touches[0].clientY : e.clientY;
-
-                const moveX = Math.abs(currentX - startX);
-                const moveY = Math.abs(currentY - touchStartY);
-
-                if (moveX > 10 || moveY > 10) {
-                    hasMoved = true;
-                }
-
-                if (e.cancelable && hasMoved) {
-                    e.preventDefault();
-                }
-
-                if (hasMoved) {
-                    const diff = currentX - startX;
-                    const slideWidth = imageSlider.clientWidth;
-                    const translateX = -currentIndex * 100 + (diff / slideWidth) * 100;
-
-                    if (totalSlides > 1) {
-                        imageSlider.style.transform = `translateX(${translateX}%)`;
-                    }
-                }
-            }
-
-            // Handle touch end event
-            function handleTouchEnd(e) {
-                touchEndTime = new Date().getTime();
-                const touchDuration = touchEndTime - touchStartTime;
-
-                startTouchDistance = 0;
-
-                if (isZooming || !isSwiping) {
-                    isZooming = false;
-                    return;
-                }
-
-                isSwiping = false;
-
-                if (touchDuration < 200 && !hasMoved) {
-                    return;
-                }
-
-                if (hasMoved) {
-                    const diff = currentX - startX;
-                    const threshold = imageSlider.clientWidth * 0.15;
-
-                    if (diff < -threshold && canNavigate(1)) {
-                        nextSlide();
-                    } else if (diff > threshold && canNavigate(-1)) {
-                        prevSlide();
-                    } else {
-                        updateSlider();
-                    }
-                }
-            }
-
-            // Add event listeners for touch events
-            imageSlider.addEventListener("touchstart", handleTouchStart);
-            imageSlider.addEventListener("touchmove", handleTouchMove);
-            imageSlider.addEventListener("touchend", handleTouchEnd);
-
-            // Event listener for page control dots
-            const dots = pageControls.querySelectorAll(".page-dot");
-            dots.forEach((dot, index) => {
-                dot.addEventListener("click", () => {
-                    currentIndex = index;
-                    updateSlider();
-                });
-            });
-
-            // Initialize slider on resize
-            window.addEventListener("resize", updateSlider);
-
-            // Initial call to update slider and display dots
-            updateSlider();
+        // Handle window resize
+        window.addEventListener("resize", () => {
+          updateSlider();
         });
+
+        // Add click event listeners to page dots
+        const dots = pageControls.querySelectorAll(".page-dot");
+        dots.forEach((dot, index) => {
+          dot.addEventListener("click", () => {
+            goToSlide(index);
+          });
+        });
+      });
     </script>
-</body>
+  </body>
 </html>
-      
