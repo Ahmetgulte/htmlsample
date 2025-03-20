@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0 user-scalable=yes" />
@@ -12,8 +11,7 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
-                sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #ffffff;
         }
 
@@ -29,6 +27,7 @@
             width: 100%;
             overflow: hidden;
             margin-bottom: 10px;
+            touch-action: none; /* Disable default touch actions */
         }
 
         .image-slider {
@@ -49,6 +48,7 @@
             height: 100%;
             object-fit: contain;
             display: block;
+            transition: transform 0.3s ease;
         }
 
         .page-controls {
@@ -91,246 +91,97 @@
         }
     </style>
 </head>
-
 <body>
     <div class="container">
         <div class="image-slider-container">
             <div class="image-slider" id="imageSlider">
-
+                <!-- Add your images here -->
+                <div class="slide"><img src="https://via.placeholder.com/800x600" alt="Slide 1"></div>
+                <div class="slide"><img src="https://via.placeholder.com/800x600" alt="Slide 2"></div>
+                <div class="slide"><img src="https://via.placeholder.com/800x600" alt="Slide 3"></div>
             </div>
         </div>
 
-        <div class="page-controls" id="pageControls">
-
-        </div>
+        <div class="page-controls" id="pageControls"></div>
     </div>
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-        
-        const imageSlider = document.getElementById("imageSlider");
-        const pageControls = document.getElementById("pageControls");
-        const imageSliderContainer = document.querySelector(".image-slider-container");
+            const imageSlider = document.getElementById("imageSlider");
+            const pageControls = document.getElementById("pageControls");
+            const imageSliderContainer = document.querySelector(".image-slider-container");
+            const totalSlides = document.querySelectorAll(".slide").length;
 
-        imageSliderContainer.style.height = "500px";
+            let currentIndex = 0;
+            let startX = 0;
+            let currentX = 0;
+            let startTouchDistance = 0;
+            let scale = 1; // Initial scale of the image
+            let isZooming = false;
 
-        
-        let currentIndex = 0;
-        let startX = 0;
-        let currentX = 0;
-        let isSwiping = false;
-        let isZooming = false;
-        let startTouchDistance = 0;
-        let touchStartTime = 0;
-        let touchEndTime = 0;
-        let touchStartY = 0;
-        let hasMoved = false;
-
-        
-        const totalSlides = document.querySelectorAll(".slide").length;
-
-        
-        function updateSlider() {
-          imageSlider.style.transform = `translateX(-${currentIndex * 100}%)`;
-
-          const dots = pageControls.querySelectorAll(".page-dot");
-          dots.forEach((dot, index) => {
-            dot.classList.toggle("active", index === currentIndex);
-          });
-        }
-
-        
-        function detectPinchGesture(e) {
-          if (e.touches && e.touches.length === 2) {
-            
-            const touch1 = e.touches[0];
-            const touch2 = e.touches[1];
-            const distance = Math.hypot(
-              touch2.clientX - touch1.clientX,
-              touch2.clientY - touch1.clientY
-            );
-
-            if (startTouchDistance === 0) {
-              startTouchDistance = distance;
-              return false;
+            function updateSlider() {
+                imageSlider.style.transform = `translateX(-${currentIndex * 100}%)`;
+                const dots = pageControls.querySelectorAll(".page-dot");
+                dots.forEach((dot, index) => {
+                    dot.classList.toggle("active", index === currentIndex);
+                });
             }
 
-            
-            const zoomThreshold = 10; 
-            if (Math.abs(distance - startTouchDistance) > zoomThreshold) {
-              isZooming = true;
-              return true;
+            function nextSlide() {
+                currentIndex = (currentIndex + 1) % totalSlides;
+                updateSlider();
             }
-          } else {
-            
-            startTouchDistance = 0;
-          }
 
-          return false;
-        }
-
-        
-        function nextSlide() {
-          currentIndex = (currentIndex + 1) % totalSlides;
-          updateSlider();
-        }
-
-        
-        function prevSlide() {
-          currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
-          updateSlider();
-        }
-
-        function canNavigate(direction) {
-          
-          if (direction > 0 && currentIndex >= totalSlides - 1) {
-            return false; 
-          }
-          if (direction < 0 && currentIndex <= 0) {
-            return false; 
-          }
-          return true;
-        }
-
-        
-        function handleTouchStart(e) {
-          
-          isZooming = false;
-          startTouchDistance = 0;
-          hasMoved = false;
-          touchStartTime = new Date().getTime();
-
-          
-          if (e.touches && e.touches.length === 2) {
-            const touch1 = e.touches[0];
-            const touch2 = e.touches[1];
-            startTouchDistance = Math.hypot(
-              touch2.clientX - touch1.clientX,
-              touch2.clientY - touch1.clientY
-            );
-            return;
-          }
-
-          startX = e.touches ? e.touches[0].clientX : e.clientX;
-          touchStartY = e.touches ? e.touches[0].clientY : e.clientY;
-          isSwiping = true;
-
-          
-          if (e.cancelable) {
-            e.preventDefault();
-          }
-        }
-
-        function handleTouchMove(e) {
-          
-          if (e.touches && e.touches.length === 2) {
-            detectPinchGesture(e);
-            return;
-          }
-
-          
-          if (isZooming || !isSwiping) return;
-
-          currentX = e.touches ? e.touches[0].clientX : e.clientX;
-          const currentY = e.touches ? e.touches[0].clientY : e.clientY;
-
-          
-          const moveX = Math.abs(currentX - startX);
-          const moveY = Math.abs(currentY - touchStartY);
-
-          
-          if (moveX > 10 || moveY > 10) {
-            hasMoved = true;
-          }
-
-          
-          if (e.cancelable && hasMoved) {
-            e.preventDefault();
-          }
-
-          if (hasMoved) {
-            const diff = currentX - startX;
-            const slideWidth = imageSlider.clientWidth;
-
-            
-            const translateX = -currentIndex * 100 + (diff / slideWidth) * 100;
-
-            
-            if (totalSlides > 1) {
-              
-              imageSlider.style.transform = `translateX(${translateX}%)`;
+            function prevSlide() {
+                currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
+                updateSlider();
             }
-          }
-        }
 
-        function handleTouchEnd(e) {
-          touchEndTime = new Date().getTime();
-          const touchDuration = touchEndTime - touchStartTime;
-
-          
-          startTouchDistance = 0;
-
-          
-          if (isZooming || !isSwiping) {
-            isZooming = false;
-            return;
-          }
-
-          isSwiping = false;
-
-          
-          if (touchDuration < 200 && !hasMoved) {
-            
-            return;
-          }
-
-          
-          if (hasMoved) {
-            const diff = currentX - startX;
-            
-            const threshold = imageSlider.clientWidth * 0.15; 
-
-            
-            if (diff < -threshold && canNavigate(1)) {
-              nextSlide();
-            } else if (diff > threshold && canNavigate(-1)) {
-              prevSlide();
-            } else {
-              updateSlider(); 
+            function handleTouchStart(e) {
+                if (e.touches && e.touches.length === 2) {
+                    const touch1 = e.touches[0];
+                    const touch2 = e.touches[1];
+                    startTouchDistance = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY);
+                    isZooming = true;
+                }
             }
-          }
-        }
 
-        
-        imageSlider.addEventListener("touchstart", handleTouchStart);
-        imageSlider.addEventListener("touchmove", handleTouchMove);
-        imageSlider.addEventListener("touchend", handleTouchEnd);
+            function handleTouchMove(e) {
+                if (isZooming && e.touches && e.touches.length === 2) {
+                    const touch1 = e.touches[0];
+                    const touch2 = e.touches[1];
+                    const newDistance = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY);
+                    const scaleFactor = newDistance / startTouchDistance;
 
-        
-        imageSlider.addEventListener("touchstart", () => {
-          
+                    // Zoom the image based on the pinch distance
+                    scale = Math.max(1, Math.min(scaleFactor, 3)); // Clamp between 1x and 3x zoom
+                    imageSlider.querySelectorAll("img").forEach((img) => {
+                        img.style.transform = `scale(${scale})`;
+                    });
+                }
+            }
+
+            function handleTouchEnd(e) {
+                if (isZooming) {
+                    isZooming = false;
+                    startTouchDistance = 0;
+                }
+            }
+
+            imageSlider.addEventListener("touchstart", handleTouchStart);
+            imageSlider.addEventListener("touchmove", handleTouchMove);
+            imageSlider.addEventListener("touchend", handleTouchEnd);
+
+            window.addEventListener("resize", updateSlider);
+
+            const dots = pageControls.querySelectorAll(".page-dot");
+            dots.forEach((dot, index) => {
+                dot.addEventListener("click", () => {
+                    currentIndex = index;
+                    updateSlider();
+                });
+            });
         });
-
-        
-        imageSlider.addEventListener("touchend", () => {
-          
-        });
-
-        
-        window.addEventListener("resize", () => {
-          updateSlider();
-        });
-
-        
-        const dots = pageControls.querySelectorAll(".page-dot");
-        dots.forEach((dot, index) => {
-          dot.addEventListener("click", () => {
-            currentIndex = index;
-            updateSlider();
-          });
-        });
-      });
     </script>
 </body>
-
 </html>
