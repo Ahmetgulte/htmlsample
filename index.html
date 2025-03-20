@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0 user-scalable=yes" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
     <style>
         * {
             margin: 0;
@@ -27,7 +28,6 @@
             width: 100%;
             overflow: hidden;
             margin-bottom: 10px;
-            touch-action: none; /* Disable default touch actions */
         }
 
         .image-slider {
@@ -48,7 +48,8 @@
             height: 100%;
             object-fit: contain;
             display: block;
-            transition: transform 0.3s ease;
+            transform-origin: center center; /* Center the zooming action */
+            transition: transform 0.3s ease-in-out; /* Smooth zoom transition */
         }
 
         .page-controls {
@@ -91,48 +92,100 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="image-slider-container">
             <div class="image-slider" id="imageSlider">
-                <!-- Slide 1 -->
+                <!-- Add slides here -->
                 <div class="slide">
                     <img src="https://picsum.photos/800/600?random=1" alt="Slide1 Image">
                 </div>
-                <!-- Slide 2 -->
                 <div class="slide">
-                   <img src="https://picsum.photos/800/600?random=1" alt="Slide2 Image">
+                    <img src="https://picsum.photos/800/600?random=1" alt="Slide2 Image">
                 </div>
             </div>
         </div>
 
         <div class="page-controls" id="pageControls">
-            <!-- Placeholder for page dots -->
+            <!-- Page control dots will be added dynamically -->
         </div>
     </div>
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
+
             const imageSlider = document.getElementById("imageSlider");
             const pageControls = document.getElementById("pageControls");
             const imageSliderContainer = document.querySelector(".image-slider-container");
-            const totalSlides = document.querySelectorAll(".slide").length;
 
             let currentIndex = 0;
             let startX = 0;
             let currentX = 0;
-            let startTouchDistance = 0;
-            let scale = 1; // Initial scale of the image
+            let isSwiping = false;
             let isZooming = false;
+            let startTouchDistance = 0;
+            let touchStartTime = 0;
+            let touchEndTime = 0;
+            let touchStartY = 0;
+            let hasMoved = false;
+            let scale = 1; // For zooming
 
+            const slides = document.querySelectorAll(".slide");
+            const totalSlides = slides.length;
+
+            // Initialize page controls (dots)
+            for (let i = 0; i < totalSlides; i++) {
+                const dot = document.createElement("button");
+                dot.classList.add("page-dot");
+                pageControls.appendChild(dot);
+            }
+
+            // Function to update the slider
             function updateSlider() {
                 imageSlider.style.transform = `translateX(-${currentIndex * 100}%)`;
+
                 const dots = pageControls.querySelectorAll(".page-dot");
                 dots.forEach((dot, index) => {
                     dot.classList.toggle("active", index === currentIndex);
                 });
             }
 
+            // Function to detect pinch-to-zoom
+            function detectPinchGesture(e) {
+                if (e.touches && e.touches.length === 2) {
+
+                    const touch1 = e.touches[0];
+                    const touch2 = e.touches[1];
+                    const distance = Math.hypot(
+                        touch2.clientX - touch1.clientX,
+                        touch2.clientY - touch1.clientY
+                    );
+
+                    if (startTouchDistance === 0) {
+                        startTouchDistance = distance;
+                        return false;
+                    }
+
+                    const zoomThreshold = 10;
+                    if (Math.abs(distance - startTouchDistance) > zoomThreshold) {
+                        isZooming = true;
+                        const zoomFactor = (distance / startTouchDistance);
+                        scale *= zoomFactor;
+                        scale = Math.max(1, Math.min(scale, 3)); // Limiting zoom scale (min: 1, max: 3)
+                        const currentImage = slides[currentIndex].querySelector("img");
+                        currentImage.style.transform = `scale(${scale})`;
+                        startTouchDistance = distance; // Update the start distance for the next iteration
+                        return true;
+                    }
+                } else {
+                    startTouchDistance = 0;
+                }
+
+                return false;
+            }
+
+            // Functions to handle slide navigation
             function nextSlide() {
                 currentIndex = (currentIndex + 1) % totalSlides;
                 updateSlider();
@@ -143,43 +196,114 @@
                 updateSlider();
             }
 
+            function canNavigate(direction) {
+                if (direction > 0 && currentIndex >= totalSlides - 1) {
+                    return false;
+                }
+                if (direction < 0 && currentIndex <= 0) {
+                    return false;
+                }
+                return true;
+            }
+
+            // Handle touch start event
             function handleTouchStart(e) {
+                isZooming = false;
+                startTouchDistance = 0;
+                hasMoved = false;
+                touchStartTime = new Date().getTime();
+
                 if (e.touches && e.touches.length === 2) {
                     const touch1 = e.touches[0];
                     const touch2 = e.touches[1];
-                    startTouchDistance = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY);
-                    isZooming = true;
+                    startTouchDistance = Math.hypot(
+                        touch2.clientX - touch1.clientX,
+                        touch2.clientY - touch1.clientY
+                    );
+                    return;
+                }
+
+                startX = e.touches ? e.touches[0].clientX : e.clientX;
+                touchStartY = e.touches ? e.touches[0].clientY : e.clientY;
+                isSwiping = true;
+
+                if (e.cancelable) {
+                    e.preventDefault();
                 }
             }
 
+            // Handle touch move event
             function handleTouchMove(e) {
-                if (isZooming && e.touches && e.touches.length === 2) {
-                    const touch1 = e.touches[0];
-                    const touch2 = e.touches[1];
-                    const newDistance = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY);
-                    const scaleFactor = newDistance / startTouchDistance;
+                if (e.touches && e.touches.length === 2) {
+                    detectPinchGesture(e);
+                    return;
+                }
 
-                    // Zoom the image based on the pinch distance
-                    scale = Math.max(1, Math.min(scaleFactor, 3)); // Clamp between 1x and 3x zoom
-                    imageSlider.querySelectorAll("img").forEach((img) => {
-                        img.style.transform = `scale(${scale})`;
-                    });
+                if (isZooming || !isSwiping) return;
+
+                currentX = e.touches ? e.touches[0].clientX : e.clientX;
+                const currentY = e.touches ? e.touches[0].clientY : e.clientY;
+
+                const moveX = Math.abs(currentX - startX);
+                const moveY = Math.abs(currentY - touchStartY);
+
+                if (moveX > 10 || moveY > 10) {
+                    hasMoved = true;
+                }
+
+                if (e.cancelable && hasMoved) {
+                    e.preventDefault();
+                }
+
+                if (hasMoved) {
+                    const diff = currentX - startX;
+                    const slideWidth = imageSlider.clientWidth;
+                    const translateX = -currentIndex * 100 + (diff / slideWidth) * 100;
+
+                    if (totalSlides > 1) {
+                        imageSlider.style.transform = `translateX(${translateX}%)`;
+                    }
                 }
             }
 
+            // Handle touch end event
             function handleTouchEnd(e) {
-                if (isZooming) {
+                touchEndTime = new Date().getTime();
+                const touchDuration = touchEndTime - touchStartTime;
+
+                startTouchDistance = 0;
+
+                if (isZooming || !isSwiping) {
                     isZooming = false;
-                    startTouchDistance = 0;
+                    return;
+                }
+
+                isSwiping = false;
+
+                if (touchDuration < 200 && !hasMoved) {
+                    return;
+                }
+
+                if (hasMoved) {
+                    const diff = currentX - startX;
+                    const threshold = imageSlider.clientWidth * 0.15;
+
+                    if (diff < -threshold && canNavigate(1)) {
+                        nextSlide();
+                    } else if (diff > threshold && canNavigate(-1)) {
+                        prevSlide();
+                    } else {
+                        updateSlider();
+                    }
                 }
             }
 
+            // Add event listeners for touch events
             imageSlider.addEventListener("touchstart", handleTouchStart);
             imageSlider.addEventListener("touchmove", handleTouchMove);
             imageSlider.addEventListener("touchend", handleTouchEnd);
 
-            window.addEventListener("resize", updateSlider);
-
+            // Event listener for page control dots
             const dots = pageControls.querySelectorAll(".page-dot");
             dots.forEach((dot, index) => {
                 dot.addEventListener("click", () => {
@@ -187,7 +311,14 @@
                     updateSlider();
                 });
             });
+
+            // Initialize slider on resize
+            window.addEventListener("resize", updateSlider);
+
+            // Initial call to update slider and display dots
+            updateSlider();
         });
     </script>
 </body>
 </html>
+      
