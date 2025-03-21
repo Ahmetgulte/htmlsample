@@ -1,444 +1,177 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=10.0, user-scalable=yes">
+    <title>Touch Pinch Zoom Image</title>
     <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
-          sans-serif;
-        background-color: #ffffff;
-        touch-action: manipulation;
-      }
-
-      .container {
-        margin-top: 20px;
-        margin-bottom: 20px;
-        margin-left: 15px;
-        margin-right: 15px;
-      }
-
-      .image-slider-container {
-        position: relative;
-        width: 100%;
-        overflow: hidden;
-        margin-bottom: 10px;
-      }
-
-      .image-slider {
-        display: flex;
-        transition: transform 0.3s ease-in-out;
-        height: 100%;
-        width: 100%;
-      }
-
-      .slide {
-        flex: 0 0 100%;
-        height: 100%;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .slide img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-        display: block;
-        transition: transform 0.3s ease-out;
-        transform-origin: center;
-      }
-
-      .page-controls {
-        display: flex;
-        gap: 10px;
-        background-color: rgba(0, 0, 0, 0.3);
-        justify-content: center;
-        padding: 6px 10px;
-        border-radius: 20px;
-        width: fit-content;
-        margin-left: auto;
-        margin-right: auto;
-      }
-
-      .page-dot {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background-color: rgba(255, 255, 255, 1);
-        transition: all 0.3s ease;
-        cursor: pointer;
-        border: none;
-        box-shadow: none;
-      }
-
-      .page-dot.active {
-        background-color: #000000;
-      }
-
-      @media (max-width: 768px) {
-        .image-slider-container {
-          height: 360px;
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f5f5f5;
+            overflow: hidden;
         }
-      }
-
-      @media (max-width: 480px) {
-        .image-slider-container {
-          height: 250px;
+        
+        .container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
         }
-      }
+        
+        #zoomable-image {
+            max-width: 100%;
+            max-height: 100%;
+            transform-origin: center center;
+            touch-action: manipulation;
+        }
     </style>
-  </head>
-  <body>
-    <div class="container">
-      <div class="image-slider-container">
-        <div class="image-slider" id="imageSlider">
-          
-          <div class="slide">
-            <img src="https://i.ibb.co/Kc2psngV/walkie-talkie-2.jpg" id="image0" />
-          </div>
-          
-          <div class="slide">
-            <img src="https://i.ibb.co/RpC5FJD1/walkie-talkie-1.jpg" id="image1" />
-          </div>
-          
-        </div>
-      </div>
-
-      <div class="page-controls" id="pageControls">
-        
-        <div class="page-dot active"></div>
-        
-        <div class="page-dot"></div>
-        
-      </div>
+</head>
+<body>
+    <div class="container" id="container">
+        <img id="zoomable-image" src="https://i.ibb.co/Kc2psngV/walkie-talkie-2.jpg" alt="Zoomable Image">
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
     <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        
-        const imageSlider = document.getElementById("imageSlider");
-        const pageControls = document.getElementById("pageControls");
-        const imageSliderContainer = document.querySelector(".image-slider-container");
-        const slides = document.querySelectorAll(".slide");
-        const images = document.querySelectorAll(".slide img");
-
-        imageSliderContainer.style.height = "500px";
-
-        // Variables for swipe functionality
-        let currentIndex = 0;
-        let startX = 0;
-        let currentX = 0;
-        let isSwiping = false;
-        let touchStartTime = 0;
-        let touchEndTime = 0;
-        let touchStartY = 0;
-        let hasMoved = false;
-        
-        // Variables for zoom functionality
-        let isZooming = false;
-        let startTouchDistance = 0;
-        let currentScale = 1;
-        let lastScale = 1;
-        let startCenterX = 0;
-        let startCenterY = 0;
-        let lastPosX = 0;
-        let lastPosY = 0;
-        let posX = 0;
-        let posY = 0;
-        let maxScale = 3;
-        let minScale = 1;
-        let zoomStarted = false;
-
-        // Total number of slides
-        const totalSlides = slides.length;
-
-        // Function to update slider position
-        function updateSlider() {
-          // Only animate transitions when not zooming
-          if (!isZooming) {
-            imageSlider.style.transition = "transform 0.3s ease-in-out";
-            imageSlider.style.transform = `translateX(-${currentIndex * 100}%)`;
-          }
-
-          const dots = pageControls.querySelectorAll(".page-dot");
-          dots.forEach((dot, index) => {
-            dot.classList.toggle("active", index === currentIndex);
-          });
-        }
-
-        // Function to get the center point between two touches
-        function getMidpoint(touch1, touch2) {
-          return {
-            x: (touch1.clientX + touch2.clientX) / 2,
-            y: (touch1.clientY + touch2.clientY) / 2
-          };
-        }
-
-        // Reset zoom for current image
-        function resetZoom() {
-          const currentImage = images[currentIndex];
-          currentScale = 1;
-          lastScale = 1;
-          posX = 0;
-          posY = 0;
-          lastPosX = 0;
-          lastPosY = 0;
-          
-          currentImage.style.transition = "transform 0.3s ease-out";
-          currentImage.style.transform = `translate(0px, 0px) scale(1)`;
-          
-          // Re-enable swiping between images
-          isSwiping = false;
-          isZooming = false;
-        }
-
-        // Function to handle image transition
-        function goToSlide(index) {
-          // Reset zoom on previous image
-          resetZoom();
-          
-          // Update current index
-          currentIndex = index;
-          updateSlider();
-        }
-
-        // Function to go to next slide
-        function nextSlide() {
-          goToSlide((currentIndex + 1) % totalSlides);
-        }
-
-        // Function to go to previous slide
-        function prevSlide() {
-          goToSlide((currentIndex - 1 + totalSlides) % totalSlides);
-        }
-
-        // Check if navigation is possible in the given direction
-        function canNavigate(direction) {
-          // If zoomed in, don't allow navigation
-          if (currentScale > 1) {
-            return false;
-          }
-          
-          // Check boundaries
-          if (direction > 0 && currentIndex >= totalSlides - 1) {
-            return false; 
-          }
-          if (direction < 0 && currentIndex <= 0) {
-            return false; 
-          }
-          return true;
-        }
-
-        // Handle touch start
-        function handleTouchStart(e) {
-          const touches = e.touches;
-          
-          hasMoved = false;
-          touchStartTime = new Date().getTime();
-
-          // Handle pinch gesture
-          if (touches && touches.length === 2) {
-            isZooming = true;
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.getElementById('container');
+            const image = document.getElementById('zoomable-image');
             
-            // Disable slider transition during zoom
-            imageSlider.style.transition = "none";
+            let currentScale = 1;
+            let posX = 0;
+            let posY = 0;
+            let startX = 0;
+            let startY = 0;
+            let lastPosX = 0;
+            let lastPosY = 0;
             
-            // Calculate distance between two fingers
-            const touch1 = touches[0];
-            const touch2 = touches[1];
-            startTouchDistance = Math.hypot(
-              touch2.clientX - touch1.clientX,
-              touch2.clientY - touch1.clientY
-            );
+            // Set up Hammer.js
+            const hammer = new Hammer.Manager(container);
             
-            // Get midpoint between touches
-            const midpoint = getMidpoint(touch1, touch2);
-            startCenterX = midpoint.x;
-            startCenterY = midpoint.y;
+            // Add recognizers
+            const pinch = new Hammer.Pinch();
+            const pan = new Hammer.Pan({
+                direction: Hammer.DIRECTION_ALL,
+                threshold: 0
+            });
+            const doubleTap = new Hammer.Tap({
+                event: 'doubletap',
+                taps: 2
+            });
             
-            // Store last scale
-            lastScale = currentScale;
+            // Add recognizers to manager
+            hammer.add([pinch, pan, doubleTap]);
             
-            // Mark that we've started zooming
-            zoomStarted = true;
+            // Ensure pan and pinch can work together
+            pinch.recognizeWith(pan);
             
-            // Prevent default to avoid page scrolling
-            if (e.cancelable) {
-              e.preventDefault();
-            }
-            return;
-          }
-
-          // Handle single touch (swipe)
-          if (!isZooming) {
-            startX = touches ? touches[0].clientX : e.clientX;
-            touchStartY = touches ? touches[0].clientY : e.clientY;
-            isSwiping = true;
-          }
-          
-          // Prevent default for touch events
-          if (e.cancelable) {
-            e.preventDefault();
-          }
-        }
-
-        // Handle touch move
-        function handleTouchMove(e) {
-          const touches = e.touches;
-          
-          // Handle pinch/zoom with two fingers
-          if (touches && touches.length === 2 && zoomStarted) {
-            const touch1 = touches[0];
-            const touch2 = touches[1];
-            const currentTouchDistance = Math.hypot(
-              touch2.clientX - touch1.clientX,
-              touch2.clientY - touch1.clientY
-            );
-            
-            // Calculate scale factor
-            const scaleChange = currentTouchDistance / startTouchDistance;
-            currentScale = Math.min(Math.max(lastScale * scaleChange, minScale), maxScale);
-            
-            // Calculate new center point
-            const currentMidpoint = getMidpoint(touch1, touch2);
-            
-            // Calculate position changes (for panning while zoomed)
-            if (currentScale > 1) {
-              // Only allow panning when zoomed in
-              const deltaX = currentMidpoint.x - startCenterX;
-              const deltaY = currentMidpoint.y - startCenterY;
-              
-              // Adjust position based on scale
-              posX = lastPosX + deltaX / currentScale;
-              posY = lastPosY + deltaY / currentScale;
-            }
-            
-            // Apply transform to current image
-            const currentImage = images[currentIndex];
-            currentImage.style.transform = `translate(${posX}px, ${posY}px) scale(${currentScale})`;
-            
-            // Prevent default to avoid page scrolling
-            if (e.cancelable) {
-              e.preventDefault();
-            }
-            return;
-          }
-          
-          // Handle single touch movement (swipe)
-          if (isSwiping && !isZooming && touches) {
-            currentX = touches[0].clientX;
-            const currentY = touches[0].clientY;
-            
-            // Check if user has moved enough to consider it a swipe
-            const moveX = Math.abs(currentX - startX);
-            const moveY = Math.abs(currentY - touchStartY);
-            
-            if (moveX > 10 || moveY > 10) {
-              hasMoved = true;
-            }
-            
-            // If scale is 1 (not zoomed) and user is swiping horizontally
-            if (currentScale === 1 && hasMoved && moveX > moveY) {
-              const diff = currentX - startX;
-              const slideWidth = imageSlider.clientWidth;
-              
-              // Calculate translation percentage
-              const translateX = -currentIndex * 100 + (diff / slideWidth) * 100;
-              
-              // Only allow swiping if more than one slide
-              if (totalSlides > 1) {
-                imageSlider.style.transform = `translateX(${translateX}%)`;
-              }
-              
-              // Prevent default to avoid page scrolling
-              if (e.cancelable) {
+            // Double tap to zoom
+            hammer.on('doubletap', function(e) {
                 e.preventDefault();
-              }
-            }
-          }
-        }
-
-        // Handle touch end
-        function handleTouchEnd(e) {
-          touchEndTime = new Date().getTime();
-          const touchDuration = touchEndTime - touchStartTime;
-          
-          // Handle end of zoom gesture
-          if (zoomStarted) {
-            zoomStarted = false;
+                
+                if (currentScale === 1) {
+                    currentScale = 2;
+                    // Center the zoom on tap position
+                    const rect = container.getBoundingClientRect();
+                    const centerX = (e.center.x - rect.left);
+                    const centerY = (e.center.y - rect.top);
+                    
+                    // Adjust positioning for zoom center
+                    posX = (window.innerWidth / 2 - centerX) * (currentScale - 1) / currentScale;
+                    posY = (window.innerHeight / 2 - centerY) * (currentScale - 1) / currentScale;
+                } else {
+                    // Reset to original
+                    currentScale = 1;
+                    posX = 0;
+                    posY = 0;
+                }
+                
+                updateTransform();
+            });
             
-            // Store the last position for next gesture
-            lastPosX = posX;
-            lastPosY = posY;
-            lastScale = currentScale;
+            // Pinch to zoom
+            hammer.on('pinchstart', function(e) {
+                initialScale = currentScale;
+                startX = posX;
+                startY = posY;
+            });
             
-            // If scale is at or below minimum, reset completely
-            if (currentScale <= minScale) {
-              resetZoom();
+            hammer.on('pinch', function(e) {
+                // Calculate the new scale
+                let newScale = Math.max(1, Math.min(5, initialScale * e.scale));
+                
+                // Calculate the focal point in image coordinates
+                const rect = container.getBoundingClientRect();
+                const centerX = (e.center.x - rect.left);
+                const centerY = (e.center.y - rect.top);
+                
+                // Only adjust position if scaling changes
+                if (newScale !== currentScale) {
+                    // Adjust position to keep pinch center point stationary
+                    const dx = (centerX - window.innerWidth / 2);
+                    const dy = (centerY - window.innerHeight / 2);
+                    
+                    posX = startX - dx * (newScale - initialScale) / newScale;
+                    posY = startY - dy * (newScale - initialScale) / newScale;
+                    
+                    currentScale = newScale;
+                }
+                
+                updateTransform();
+            });
+            
+            // Pan only when zoomed in
+            hammer.on('panstart', function(e) {
+                if (currentScale > 1) {
+                    startX = posX;
+                    startY = posY;
+                    lastPosX = posX;
+                    lastPosY = posY;
+                }
+            });
+            
+            hammer.on('pan', function(e) {
+                if (currentScale > 1) {
+                    // Calculate boundaries
+                    const maxPosX = (currentScale - 1) * image.offsetWidth / 2;
+                    const maxPosY = (currentScale - 1) * image.offsetHeight / 2;
+                    
+                    // Update position with delta
+                    posX = Math.max(-maxPosX, Math.min(maxPosX, startX + e.deltaX));
+                    posY = Math.max(-maxPosY, Math.min(maxPosY, startY + e.deltaY));
+                    
+                    // Inertia detection for pan
+                    lastPosX = posX;
+                    lastPosY = posY;
+                    
+                    updateTransform();
+                }
+            });
+            
+            function updateTransform() {
+                image.style.transform = `translate(${posX}px, ${posY}px) scale(${currentScale})`;
             }
             
-            // If no more touches, end zooming mode
-            if (!e.touches || e.touches.length === 0) {
-              isZooming = false;
-            }
-            return;
-          }
-          
-          // Handle end of swipe
-          if (isSwiping && !isZooming) {
-            isSwiping = false;
+            // Prevent default browser zoom/pinch behavior
+            document.addEventListener('touchmove', function(e) {
+                if (currentScale !== 1 || e.touches.length > 1) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
             
-            // Quick tap (not a swipe)
-            if (touchDuration < 200 && !hasMoved) {
-              return;
-            }
-            
-            // Handle swipe gesture
-            if (hasMoved && currentScale === 1) {
-              const diff = currentX - startX;
-              const threshold = imageSlider.clientWidth * 0.15;
-              
-              // Swipe left
-              if (diff < -threshold && canNavigate(1)) {
-                nextSlide();
-              } 
-              // Swipe right
-              else if (diff > threshold && canNavigate(-1)) {
-                prevSlide();
-              } 
-              // Not enough movement, return to current slide
-              else {
-                updateSlider();
-              }
-            }
-          }
-        }
-
-        // Add event listeners
-        imageSlider.addEventListener("touchstart", handleTouchStart, { passive: false });
-        imageSlider.addEventListener("touchmove", handleTouchMove, { passive: false });
-        imageSlider.addEventListener("touchend", handleTouchEnd);
-        imageSlider.addEventListener("touchstart", handleDoubleTap, { passive: false });
-
-        // Handle window resize
-        window.addEventListener("resize", () => {
-          updateSlider();
+            // Prevent contextmenu on long press
+            container.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+            });
         });
-
-        // Add click event listeners to page dots
-        const dots = pageControls.querySelectorAll(".page-dot");
-        dots.forEach((dot, index) => {
-          dot.addEventListener("click", () => {
-            goToSlide(index);
-          });
-        });
-      });
     </script>
-  </body>
+</body>
 </html>
