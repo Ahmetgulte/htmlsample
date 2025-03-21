@@ -420,52 +420,6 @@
           }
         }
 
-        // Double tap to zoom
-        function handleDoubleTap(e) {
-          if (isZooming) return;
-          
-          const now = new Date().getTime();
-          const timeSince = now - touchEndTime;
-          
-          // Check if double tap (two taps within 300ms)
-          if (timeSince < 300) {
-            const currentImage = images[currentIndex];
-            
-            // Toggle between zoom levels
-            if (currentScale === 1) {
-              currentScale = 2;
-              
-              // Get tap position to zoom towards that point
-              const touch = e.touches ? e.touches[0] : e;
-              const rect = currentImage.getBoundingClientRect();
-              const offsetX = touch.clientX - rect.left;
-              const offsetY = touch.clientY - rect.top;
-              
-              // Calculate position to center the zoom on tap point
-              posX = (rect.width / 2 - offsetX) / 2;
-              posY = (rect.height / 2 - offsetY) / 2;
-              
-              currentImage.style.transition = "transform 0.3s ease-out";
-              currentImage.style.transform = `translate(${posX}px, ${posY}px) scale(${currentScale})`;
-              
-              lastScale = currentScale;
-              lastPosX = posX;
-              lastPosY = posY;
-              isZooming = true;
-            } else {
-              resetZoom();
-            }
-            
-            // Prevent default behavior
-            if (e.cancelable) {
-              e.preventDefault();
-            }
-          }
-          
-          // Update timestamp for next potential double tap
-          touchEndTime = now;
-        }
-
         // Add event listeners
         imageSlider.addEventListener("touchstart", handleTouchStart, { passive: false });
         imageSlider.addEventListener("touchmove", handleTouchMove, { passive: false });
