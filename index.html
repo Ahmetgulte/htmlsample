@@ -185,16 +185,12 @@
         const slides = document.querySelectorAll(".slide");
         
         function setResponsiveHeight() {
-          const viewportHeight = window.innerHeight;
-          
-          const bottomSheetHeight = viewportHeight * 0.8;
-          
-          const sliderHeight = bottomSheetHeight * 0.9;
-          
-          imageSliderContainer.style.height = `${sliderHeight}px`;
-          
-          if (sliderHeight < 200) {
-            imageSliderContainer.style.height = "200px";
+          if (window.innerWidth <= 480) {
+            imageSliderContainer.style.height = "250px";
+          } else if (window.innerWidth <= 768) {
+            imageSliderContainer.style.height = "650px"; // Increased from default
+          } else {
+            imageSliderContainer.style.height = "500px";
           }
         }
         
