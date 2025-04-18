@@ -183,8 +183,21 @@
         const pageControls = document.getElementById("pageControls");
         const imageSliderContainer = document.querySelector(".image-slider-container");
         const slides = document.querySelectorAll(".slide");
-
-        imageSliderContainer.style.height = "500px";
+        
+        function setResponsiveHeight() {
+            if (window.innerWidth <= 480) {
+            // Mobile: smallest height
+            imageSliderContainer.style.height = "250px";
+          } else if (window.innerWidth <= 768) {
+            // Tablet: should be LARGER than desktop
+            imageSliderContainer.style.height = "650px"; // Increased from default
+          } else {
+            // Desktop: the standard height
+            imageSliderContainer.style.height = "500px";
+          }
+        }
+        
+        setResponsiveHeight();
 
         
         let currentIndex = 0;
