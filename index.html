@@ -185,15 +185,16 @@
         const slides = document.querySelectorAll(".slide");
         
         function setResponsiveHeight() {
-            if (window.innerWidth <= 480) {
-            // Mobile: smallest height
-            imageSliderContainer.style.height = "250px";
-          } else if (window.innerWidth <= 768) {
-            // Tablet: should be LARGER than desktop
-            imageSliderContainer.style.height = "650px"; // Increased from default
-          } else {
-            // Desktop: the standard height
-            imageSliderContainer.style.height = "500px";
+          const viewportHeight = window.innerHeight;
+          
+          const bottomSheetHeight = viewportHeight * 0.8;
+          
+          const sliderHeight = bottomSheetHeight * 0.9;
+          
+          imageSliderContainer.style.height = `${sliderHeight}px`;
+          
+          if (sliderHeight < 200) {
+            imageSliderContainer.style.height = "200px";
           }
         }
         
