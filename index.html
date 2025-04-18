@@ -1,181 +1,180 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0 user-scalable=yes" />
-    
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/photoswipe@5.4.4/dist/photoswipe.css"
-    />
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@5.4.4/dist/photoswipe.css" />
     <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
-          sans-serif;
-        background-color: #ffffff;
-      }
-
-      .container {
-        margin-top: 20px;
-        margin-bottom: 20px;
-        margin-left: 15px;
-        margin-right: 15px;
-      }
-
-      .image-slider-container {
-        position: relative;
-        width: 100%;
-        overflow: hidden;
-        margin-bottom: 10px;
-        -webkit-overflow-scrolling: touch;
-      }
-
-      .image-slider {
-        display: flex;
-        transition: transform 0.3s ease-in-out;
-        height: 100%;
-        width: 100%;
-        -webkit-transform: translateZ(0);
-        transform: translateZ(0);
-      }
-
-      .slide {
-        flex: 0 0 100%;
-        height: 100%;
-        position: relative;
-        -webkit-transform: translateZ(0);
-        transform: translateZ(0);
-      }
-
-      .slide img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-        display: block;
-        cursor: pointer;
-        -webkit-transform: translateZ(0);
-        transform: translateZ(0);
-      }
-
-      .page-controls {
-        display: flex;
-        gap: 10px;
-        background-color: rgba(0, 0, 0, 0.3);
-        justify-content: center;
-        padding: 6px 10px;
-        border-radius: 20px;
-        width: fit-content;
-        margin-left: auto;
-        margin-right: auto;
-      }
-
-      .page-dot {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background-color: rgba(255, 255, 255, 1);
-        transition: all 0.3s ease;
-        cursor: pointer;
-        border: none;
-        box-shadow: none;
-      }
-
-      .page-dot.active {
-        background-color: #000000;
-      }
-
-      @media (max-width: 768px) {
-        .image-slider-container {
-          height: 360px;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-      }
 
-      @media (max-width: 480px) {
-        .image-slider-container {
-          height: 250px;
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+                sans-serif;
+            background-color: #ffffff;
         }
-      }
 
-       
-      .pswp {
-        --pswp-bg: rgba(0, 0, 0, 0.9);
-      }
+        .container {
+            margin-top: 20px;
+            margin-bottom: 20px;
+            margin-left: 15px;
+            margin-right: 15px;
+        }
+
+        .image-slider-container {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+            margin-bottom: 10px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .image-slider {
+            display: flex;
+            transition: transform 0.3s ease-in-out;
+            height: 100%;
+            width: 100%;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+        }
+
+        .slide {
+            flex: 0 0 100%;
+            height: 100%;
+            position: relative;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+        }
+
+        .slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            cursor: pointer;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+        }
+
+        .page-controls {
+            display: flex;
+            gap: 10px;
+            background-color: rgba(0, 0, 0, 0.3);
+            justify-content: center;
+            padding: 6px 10px;
+            border-radius: 20px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .page-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            box-shadow: none;
+        }
+
+        .page-dot.active {
+            background-color: #000000;
+        }
+
+        @media (max-width: 768px) {
+            .image-slider-container {
+                height: 360px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .image-slider-container {
+                height: 250px;
+            }
+        }
+
+
+        .pswp {
+            --pswp-bg: rgba(0, 0, 0, 0.9);
+        }
     </style>
-  </head>
-  <body>
-    
+</head>
+
+<body>
+
     <div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
-      <div class="pswp__bg"></div>
-      <div class="pswp__scroll-wrap">
-        <div class="pswp__container">
-          <div class="pswp__item"></div>
-          <div class="pswp__item"></div>
-          <div class="pswp__item"></div>
-        </div>
-        <div class="pswp__ui pswp__ui--hidden">
-          <div class="pswp__top-bar">
-            <div class="pswp__counter"></div>
-            <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
-            <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
-            <div class="pswp__preloader">
-              <div class="pswp__preloader__icn">
-                <div class="pswp__preloader__cut">
-                  <div class="pswp__preloader__donut"></div>
-                </div>
-              </div>
+        <div class="pswp__bg"></div>
+        <div class="pswp__scroll-wrap">
+            <div class="pswp__container">
+                <div class="pswp__item"></div>
+                <div class="pswp__item"></div>
+                <div class="pswp__item"></div>
             </div>
-          </div>
-          <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
-            <div class="pswp__share-tooltip"></div>
-          </div>
-          <button
+            <div class="pswp__ui pswp__ui--hidden">
+                <div class="pswp__top-bar">
+                    <div class="pswp__counter"></div>
+                    <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+                    <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+                    <div class="pswp__preloader">
+                        <div class="pswp__preloader__icn">
+                            <div class="pswp__preloader__cut">
+                                <div class="pswp__preloader__donut"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                    <div class="pswp__share-tooltip"></div>
+                </div>
+                <button
             class="pswp__button pswp__button--arrow--left"
             title="Previous (arrow left)"
           ></button>
-          <button
+                <button
             class="pswp__button pswp__button--arrow--right"
             title="Next (arrow right)"
           ></button>
-          <div class="pswp__caption">
-            <div class="pswp__caption__center"></div>
-          </div>
+                <div class="pswp__caption">
+                    <div class="pswp__caption__center"></div>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
 
     <div class="container">
-      <div class="image-slider-container">
-        <div class="image-slider" id="imageSlider">
-          
-          <div class="slide">
-            <img src="https://cdn.dsmcdn.com/spm-attribute-images/prod/160264/8f39eeb1-8269-47f7-b63c-410b7879e1d3/urunpaketgorsel.jpeg" />
-          </div>
-          
-          <div class="slide">
-            <img src="https://cdn.dsmcdn.com/spm-attribute-images/prod/160264/ad8c1d32-80cb-4ca2-ada2-ffb6363e862b/urunpaketgorsel.jpeg" />
-          </div>
-          
-        </div>
-      </div>
+        <div class="image-slider-container">
+            <div class="image-slider" id="imageSlider">
 
-      <div class="page-controls" id="pageControls">
-        
-        <div class="page-dot active"></div>
-        
-        <div class="page-dot "></div>
-        
-      </div>
+                <div class="slide">
+                    <img src="https://cdn.dsmcdn.com/marketing/datascience/automation/2025/4/17/Allik_202504170755.png" />
+                </div>
+
+                <div class="slide">
+                    <img src="https://cdn.dsmcdn.com/marketing/datascience/automation/2025/4/17/OnGorsel_202504171616.png" />
+                </div>
+
+            </div>
+        </div>
+
+        <div class="page-controls" id="pageControls">
+
+            <div class="page-dot active"></div>
+
+            <div class="page-dot "></div>
+
+        </div>
     </div>
 
-    
+
     <script type="module">
-      import PhotoSwipeLightbox from "https://cdn.jsdelivr.net/npm/photoswipe@5.4.4/dist/photoswipe-lightbox.esm.min.js";
+        import PhotoSwipeLightbox from "https://cdn.jsdelivr.net/npm/photoswipe@5.4.4/dist/photoswipe-lightbox.esm.min.js";
       import PhotoSwipe from "https://cdn.jsdelivr.net/npm/photoswipe@5.4.4/dist/photoswipe.esm.min.js";
 
       window.addEventListener("load", () => {
@@ -457,5 +456,6 @@
         });
       });
     </script>
-  </body>
+</body>
+
 </html>
